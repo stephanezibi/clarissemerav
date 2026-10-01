@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Calendrier{% endblock %}
+{% block kicker %}Semaine du {{ monday.strftime('%d/%m/%Y') }}{% endblock %}
+{% block heading %}Calendrier éditorial{% endblock %}
+{% block actions %}
+  <a class="btn ghost small" href="?semaine={{ offset - 1 }}">← Semaine précédente</a>
+  <a class="btn ghost small" href="?semaine=0">Cette semaine</a>
+  <a class="btn ghost small" href="?semaine={{ offset + 1 }}">Semaine suivante →</a>
+  <a class="btn small" href="{{ url_for('main.calendrier_export') }}">Exporter CSV</a>
+{% endblock %}
+{% block content %}
+<div class="week">
+  {% for d in days %}
+  <div class="day {{ 'today' if d.today }}">
+    <div class="dh"><span class="caps muted">{{ d.label }}</span> <b>{{ d.date.day }}</b></div>
+    {% for v in d.posts %}
+    <a class="ev {{ v.status }}" href="{{ url_for('main.contenu', post_id=v.post_id) }}#v{{ v.id }}">
+      <b>{{ (v.published_at or v.scheduled_at)|local('%H:%M') }}</b> · {{ NETWORKS[v.network].short }}
+      <small>{{ v.title }}</small><small>{{ STATUTS[v.status] }}</small>
+    </a>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

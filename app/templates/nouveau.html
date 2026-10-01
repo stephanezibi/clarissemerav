@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Nouveau contenu{% endblock %}
+{% block kicker %}Étape 1 — le contenu source{% endblock %}
+{% block heading %}Nouveau contenu{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" id="f">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <div class="card">
+    <h2>1 · Type de contenu</h2>
+    <div class="kinds">
+      <label class="kind"><input type="radio" name="kind" value="photo" checked><b>PHOTO(S)</b><span>une photo ou une série → carrousel</span></label>
+      <label class="kind"><input type="radio" name="kind" value="video"><b>VIDÉO</b><span>montage, sous-titres, formats</span></label>
+      <label class="kind"><input type="radio" name="kind" value="texte"><b>TEXTE → CARROUSEL</b><span>diapositives aux couleurs de la charte</span></label>
+    </div>
+
+    <div class="grid g2">
+      <div><label>Titre interne</label><input type="text" name="title" placeholder="Ex. Rencontre avec les jeunes avocats — 12 octobre" required></div>
+      <div><label>Thème de campagne</label>
+        <select name="pillar"><option value="">—</option>{% for p in piliers %}<option>{{ p }}</option>{% endfor %}</select></div>
+    </div>
+
+    <div id="bloc-fichiers">
+      <label>Fichiers</label>
+      <input type="file" name="files" id="files" multiple accept="image/*,video/*,.srt,.heic">
+      <div class="hint" id="hint-files">Photos JPG/PNG/HEIC — plusieurs photos = carrousel.</div>
+    </div>
+    <div id="bloc-texte" hidden>
+      <label>Texte à transformer en carrousel</label>
+      <textarea name="source_text" rows="10" placeholder="Collez ici le texte (programme, tribune, compte rendu…). Claude le découpe en diapositives."></textarea>
+      <label>Nombre maximum de diapositives</label>
+      <input type="number" name="nb_slides" value="8" min="3" max="20" style="max-width:120px">
+    </div>
+  </div>
+
+  <div class="card" id="bloc-video" hidden>
+    <h2>2 · Montage vidéo</h2>
+    <label>Faut-il faire un montage d'une séquence ?</label>
+    <div class="choices">
+      <label class="choice"><input type="radio" name="montage" value="aucun" checked><div>Non, vidéo entière<small>coupée automatiquement à la durée max. de chaque réseau</small></div></label>
+      <label class="choice"><input type="radio" name="montage" value="manuel"><div>Oui, je choisis la séquence<small>début et fin (mm:ss)</small></div></label>
+      <label class="choice"><input type="radio" name="montage" value="auto"><div>Oui, montage automatique IA<small>Claude choisit le meilleur passage d'après la transcription</small></div></label>
+    </div>
+    <div class="grid g3" id="tc-manuel" hidden>
+      <div><label>Début</label><input type="text" name="debut" placeholder="0:42"></div>
+      <div><label>Fin</label><input type="text" name="fin" placeholder="1:35"></div>
+    </div>
+    <div id="tc-auto" hidden><label>Durée cible (secondes)</label><input type="number" name="duree_cible" value="45" min="10" max="180" style="max-width:120px"></div>
+    <label class="choice" style="margin-top:14px"><input type="checkbox" name="sous_titres" value="1" checked><div>Sous-titres automatiques incrustés<small>{% if whisper %}transcription sur le serveur, corrigée par Claude (noms propres, ponctuation), style charte{% else %}⚠ transcription non installée sur ce serveur : joignez un fichier .srt avec la vidéo{% endif %}</small></div></label>
+  </div>
+
+  <div class="card">
+    <h2>3 · Réseaux et formats</h2>
+    <div class="choices" id="nets">
+      {% for key, n in NETWORKS.items() %}
+      <label class="choice" data-net="{{ key }}">
+        <input type="checkbox" name="networks" value="{{ key }}">
+        <div>{{ n.label }}
+          <small><span class="fmt" data-photo="{{ fmt_for(key,'photo') }}" data-video="{{ fmt_for(key,'video') }}" data-texte="{{ fmt_for(key,'texte') }}"></span>
+          · {% if connected[key] %}publication auto{% else %}publication assistée{% endif %}</small></div>
+      </label>
+      {% endfor %}
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button type="button" class="btn small ghost" data-preset="instagram_feed,linkedin,facebook,x">Essentiels</button>
+      <button type="button" class="btn small ghost" data-preset="instagram_reel,tiktok,youtube_shorts,linkedin">Vidéo verticale</button>
+      <button type="button" class="btn small ghost" data-preset="all">Tout</button>
+    </div>
+
+    <div class="grid g2">
+      <div>
+        <label>Mise au format</label>
+        <select name="recadrage">
+          <option value="flou">Image entière sur fond flouté (recommandé)</option>
+          <option value="aplat">Image entière sur aplat anthracite</option>
+          <option value="recadre">Recadrage plein cadre (coupe)</option>
+        </select>
+      </div>
+      <div>
+        <label>Signature de campagne</label>
+        <label class="choice"><input type="checkbox" name="signature" value="1" checked><div>Incruster « SURIN / GRIGUER · PARIS · BÂTONNAT 2028 »</div></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>4 · Brief, collaboration et identifications</h2>
+    <label>Brief pour la rédaction (angle, message, contexte, personnes présentes…)</label>
+    <textarea name="brief" rows="4" placeholder="Ex. Réunion avec les avocats de la défense pénale ; insister sur l'écoute et l'accès au droit ; remercier l'association X."></textarea>
+    <div class="grid g2">
+      <div><label>Comptes collaborateurs Instagram</label><input type="text" name="collaborators" placeholder="ex. @compte_clarisse @compte_merav">
+        <div class="hint">Post publié en mode « collaboration » (3 comptes max.) — apparaît sur chaque profil après acceptation.</div></div>
+      <div><label>Comptes à identifier (tags)</label><input type="text" name="user_tags" placeholder="@compte1 @compte2"></div>
+    </div>
+  </div>
+
+  <p class="row"><button class="btn bronze">Lancer la préparation automatique →</button>
+    <span class="muted">Formats, sous-titres, charte, légendes et hashtags sont générés pour chaque réseau.</span></p>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+  var KINDS = {{ kinds|tojson }};
+  var f = document.getElementById('f');
+  function refresh() {
+    var kind = f.querySelector('[name=kind]:checked').value;
+    document.getElementById('bloc-video').hidden = kind !== 'video';
+    document.getElementById('bloc-texte').hidden = kind !== 'texte';
+    document.getElementById('bloc-fichiers').hidden = kind === 'texte';
+    document.getElementById('hint-files').textContent = kind === 'video'
+      ? 'Vidéo MP4/MOV (et éventuellement un fichier .srt de sous-titres).'
+      : 'Photos JPG/PNG/HEIC — plusieurs photos = carrousel.';
+    document.getElementById('files').accept = kind === 'video' ? 'video/*,.srt' : 'image/*,.heic';
+    document.querySelectorAll('#nets [data-net]').forEach(function (el) {
+      var ok = KINDS[kind].indexOf(el.dataset.net) >= 0;
+      el.classList.toggle('disabled', !ok);
+      if (!ok) el.querySelector('input').checked = false;
+      var fmt = el.querySelector('.fmt'); fmt.textContent = 'format ' + fmt.dataset[kind];
+    });
+    var m = (f.querySelector('[name=montage]:checked') || {}).value;
+    document.getElementById('tc-manuel').hidden = m !== 'manuel';
+    document.getElementById('tc-auto').hidden = m !== 'auto';
+  }
+  f.addEventListener('change', refresh); refresh();
+  document.querySelectorAll('[data-preset]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var list = b.dataset.preset.split(',');
+      document.querySelectorAll('#nets [data-net]:not(.disabled) input').forEach(function (i) {
+        i.checked = list[0] === 'all' || list.indexOf(i.value) >= 0;
+      });
+    });
+  });
+</script>
+{% endblock %}

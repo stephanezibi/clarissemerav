@@ -1,0 +1,180 @@
+/* ====================================================================
+   Studio Réseaux — charte Surin / Griguer · Paris · Bâtonnat 2028
+   Anthracite #393736 · Ivoire #EEEAE3 · Bronze #BF9C75 · Secondaire #C3B9AD
+   Montserrat 400 / 700
+   ==================================================================== */
+
+@font-face { font-family: "Montserrat"; font-weight: 400; src: url("../fonts/Montserrat-Regular.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "Montserrat"; font-weight: 700; src: url("../fonts/Montserrat-Bold.ttf") format("truetype"); font-display: swap; }
+
+:root {
+  --anthracite: #393736;
+  --anthracite-2: #2f2d2c;
+  --ivoire: #EEEAE3;
+  --ivoire-2: #f6f4f0;
+  --bronze: #BF9C75;
+  --bronze-dark: #a3825d;
+  --secondaire: #C3B9AD;
+  --texte: #393736;
+  --texte-2: #7a746e;
+  --bord: #ddd6cc;
+  --alerte: #9b3d33;
+  --radius: 4px;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; font-family: "Montserrat", -apple-system, "Segoe UI", sans-serif; font-size: 14px;
+  color: var(--texte); background: var(--ivoire-2);
+  display: grid; grid-template-columns: 236px 1fr; min-height: 100vh;
+}
+a { color: var(--anthracite); }
+.caps { text-transform: uppercase; letter-spacing: .18em; font-size: 11px; font-weight: 700; }
+.muted { color: var(--texte-2); }
+.bronze { color: var(--bronze-dark); }
+
+/* ---------- Barre latérale ---------- */
+nav.side { background: var(--anthracite); color: var(--ivoire); padding: 28px 18px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+.brand .s1 { font-weight: 700; letter-spacing: .22em; font-size: 15px; }
+.brand .rule { width: 36px; height: 2px; background: var(--bronze); margin: 9px 0; }
+.brand .s2 { color: var(--secondaire); letter-spacing: .24em; font-size: 9.5px; }
+.brand { margin-bottom: 34px; }
+nav.side a { display: block; color: var(--ivoire); text-decoration: none; padding: 10px 12px; border-left: 2px solid transparent; margin-bottom: 2px; text-transform: uppercase; letter-spacing: .14em; font-size: 11.5px; }
+nav.side a:hover { background: rgba(238,234,227,.06); }
+nav.side a.active { border-left-color: var(--bronze); color: var(--bronze); font-weight: 700; }
+nav.side a.cta { border: 1px solid var(--bronze); color: var(--bronze); text-align: center; margin: 4px 0 18px; font-weight: 700; }
+nav.side a.cta:hover { background: var(--bronze); color: var(--anthracite); }
+nav.side .spacer { flex: 1; }
+nav.side .who { font-size: 12px; color: var(--secondaire); }
+nav.side .who button { background: none; border: 0; color: var(--bronze); cursor: pointer; padding: 0; font: inherit; text-decoration: underline; }
+
+main { min-width: 0; }
+header.top { padding: 26px 40px 10px; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+header.top h1 { margin: 0; font-size: 26px; text-transform: uppercase; letter-spacing: .02em; line-height: 1.05; }
+header.top .kicker { color: var(--bronze-dark); margin-bottom: 6px; }
+.content { padding: 12px 40px 60px; }
+
+/* ---------- Composants ---------- */
+.card { background: #fff; border: 1px solid var(--bord); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 18px; }
+.card h2 { margin: 0 0 14px; font-size: 13px; text-transform: uppercase; letter-spacing: .16em; display: flex; align-items: center; gap: 10px; }
+.card h2::before { content: ""; width: 22px; height: 2px; background: var(--bronze); display: inline-block; }
+.grid { display: grid; gap: 18px; }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.stat { background: var(--anthracite); color: var(--ivoire); padding: 18px 20px; border-radius: var(--radius); }
+.stat .v { font-size: 34px; font-weight: 700; color: var(--bronze); line-height: 1; }
+.stat .l { margin-top: 8px; color: var(--secondaire); }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; background: var(--anthracite); color: var(--ivoire); border: 1px solid var(--anthracite); padding: 9px 16px; border-radius: var(--radius); cursor: pointer; font: 700 11.5px "Montserrat", sans-serif; text-transform: uppercase; letter-spacing: .12em; text-decoration: none; }
+.btn:hover { background: var(--anthracite-2); }
+.btn.bronze { background: var(--bronze); border-color: var(--bronze); color: var(--anthracite); }
+.btn.bronze:hover { background: var(--bronze-dark); }
+.btn.ghost { background: transparent; color: var(--anthracite); border-color: var(--bord); }
+.btn.ghost:hover { border-color: var(--anthracite); }
+.btn.small { padding: 6px 10px; font-size: 10.5px; }
+.btn.danger { background: transparent; color: var(--alerte); border-color: var(--alerte); }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row.between { justify-content: space-between; }
+
+label { display: block; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; margin: 14px 0 6px; }
+input[type=text], input[type=email], input[type=password], input[type=number], input[type=datetime-local], input[type=url], select, textarea {
+  width: 100%; border: 1px solid var(--bord); border-radius: var(--radius); padding: 10px 12px; font: 14px "Montserrat", sans-serif; background: #fff; color: var(--texte);
+}
+textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--bronze); outline-offset: -1px; }
+.hint { font-size: 12px; color: var(--texte-2); margin-top: 4px; }
+.counter { font-size: 11px; color: var(--texte-2); text-align: right; }
+.counter.over { color: var(--alerte); font-weight: 700; }
+
+.choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.choice { border: 1px solid var(--bord); border-radius: var(--radius); padding: 11px 12px; display: flex; gap: 10px; align-items: flex-start; cursor: pointer; background: #fff; font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 13px; margin: 0; }
+.choice:has(input:checked) { border-color: var(--bronze); background: #faf7f2; box-shadow: inset 3px 0 0 var(--bronze); }
+.choice.disabled { opacity: .35; pointer-events: none; }
+.choice small { display: block; color: var(--texte-2); font-size: 11px; margin-top: 2px; }
+.kinds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.kind { border: 1px solid var(--bord); padding: 16px; text-align: center; cursor: pointer; border-radius: var(--radius); background: #fff; margin: 0; }
+.kind:has(input:checked) { background: var(--anthracite); color: var(--ivoire); border-color: var(--anthracite); }
+.kind input { display: none; }
+.kind b { display: block; letter-spacing: .16em; }
+.kind span { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--secondaire); }
+
+.pill { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; border: 1px solid var(--bord); background: #fff; white-space: nowrap; }
+.pill.a_relire { border-color: var(--secondaire); color: var(--texte-2); }
+.pill.valide { border-color: var(--bronze); color: var(--bronze-dark); }
+.pill.programme { background: var(--anthracite); color: var(--ivoire); border-color: var(--anthracite); }
+.pill.a_poster { background: var(--bronze); color: var(--anthracite); border-color: var(--bronze); }
+.pill.publie { background: var(--ivoire); color: var(--anthracite); border-color: var(--anthracite); }
+.pill.echec, .pill.erreur { color: var(--alerte); border-color: var(--alerte); }
+.pill.auto { border-color: var(--bronze); color: var(--bronze-dark); }
+
+.flash { padding: 12px 16px; border-radius: var(--radius); margin-bottom: 14px; border-left: 3px solid var(--bronze); background: #fff; }
+.flash.error { border-left-color: var(--alerte); color: var(--alerte); }
+.alerte { background: #faf7f2; border-left: 3px solid var(--bronze); padding: 12px 16px; white-space: pre-line; margin-bottom: 16px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .12em; color: var(--texte-2); padding: 8px; border-bottom: 2px solid var(--anthracite); white-space: nowrap; }
+td { padding: 9px 8px; border-bottom: 1px solid var(--bord); vertical-align: top; }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; }
+
+.list-item { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--bord); }
+.list-item:last-child { border-bottom: 0; }
+.list-item .t { flex: 1; min-width: 0; }
+.list-item .t b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thumb { width: 54px; height: 54px; object-fit: cover; background: var(--anthracite); border-radius: 2px; flex: none; }
+
+/* ---------- Déclinaisons ---------- */
+.variant { display: grid; grid-template-columns: minmax(240px, 340px) 1fr; gap: 24px; }
+.preview { background: var(--anthracite); border-radius: var(--radius); padding: 10px; }
+.preview img, .preview video { width: 100%; display: block; border-radius: 2px; background: #000; }
+.strip { display: flex; gap: 6px; overflow-x: auto; margin-top: 8px; padding-bottom: 4px; }
+.strip a img { width: 64px; height: auto; display: block; border: 1px solid #555; }
+.vhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--bord); padding-bottom: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+.vhead .net { font-weight: 700; text-transform: uppercase; letter-spacing: .14em; }
+.slots { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+.slot { border: 1px solid var(--bord); background: #fff; padding: 6px 10px; border-radius: 20px; font: 12px "Montserrat"; cursor: pointer; }
+.slot:hover { border-color: var(--bronze); }
+.slot.historique { border-color: var(--bronze); }
+.actions { border-top: 1px solid var(--bord); margin-top: 16px; padding-top: 14px; display: grid; gap: 12px; }
+.copybox { position: relative; }
+.copybox button { position: absolute; top: 8px; right: 8px; }
+
+.progress { display: flex; gap: 14px; align-items: center; padding: 18px; background: var(--anthracite); color: var(--ivoire); border-radius: var(--radius); }
+.spinner { width: 22px; height: 22px; border: 2px solid rgba(238,234,227,.25); border-top-color: var(--bronze); border-radius: 50%; animation: spin 1s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Calendrier ---------- */
+.week { display: grid; grid-template-columns: repeat(7, minmax(130px, 1fr)); gap: 8px; overflow-x: auto; }
+.day { background: #fff; border: 1px solid var(--bord); min-height: 220px; border-radius: var(--radius); }
+.day.today { border-color: var(--bronze); box-shadow: inset 0 3px 0 var(--bronze); }
+.day .dh { padding: 8px 10px; border-bottom: 1px solid var(--bord); }
+.day .dh b { font-size: 20px; }
+.ev { display: block; margin: 6px; padding: 7px 8px; border-left: 3px solid var(--secondaire); background: var(--ivoire-2); font-size: 12px; text-decoration: none; color: var(--texte); }
+.ev.programme { border-left-color: var(--anthracite); }
+.ev.publie { border-left-color: var(--bronze); }
+.ev.a_poster, .ev.echec { border-left-color: var(--alerte); }
+.ev small { color: var(--texte-2); display: block; }
+
+/* ---------- Carte des créneaux ---------- */
+.heat td { text-align: center; font-size: 11px; height: 34px; border: 1px solid #fff; }
+
+/* ---------- Connexion ---------- */
+body.auth { display: flex; align-items: center; justify-content: center; background: var(--anthracite); }
+.auth-box { width: min(420px, 92vw); background: var(--ivoire); padding: 36px; border-radius: var(--radius); }
+.auth-box .brand .s2 { color: var(--texte-2); }
+
+details summary { cursor: pointer; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; font-size: 11px; padding: 6px 0; }
+.slide-edit { border: 1px solid var(--bord); padding: 12px; border-radius: var(--radius); margin-bottom: 10px; background: var(--ivoire-2); }
+
+@media (max-width: 900px) {
+  body { grid-template-columns: 1fr; }
+  nav.side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 14px 16px; gap: 4px; }
+  nav.side .brand { margin: 0 14px 0 0; width: 100%; }
+  nav.side .spacer, nav.side .who { display: none; }
+  nav.side a.cta { margin: 0; }
+  header.top, .content { padding-left: 16px; padding-right: 16px; }
+  .g2, .g3, .g4, .variant, .kinds { grid-template-columns: 1fr; }
+}

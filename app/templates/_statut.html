@@ -1,0 +1,4 @@
+<div class="progress" hx-get="{{ url_for('main.contenu_statut', post_id=post.id) }}" hx-trigger="every 3s" hx-swap="outerHTML">
+  <div class="spinner"></div>
+  <div><div class="caps" style="color:var(--bronze)">Traitement automatique</div>{{ post.progress or 'Préparation…' }}</div>
+</div>

@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block kicker %}{{ {'photo':'Photo','video':'Vidéo','texte':'Carrousel'}[post.kind] }}{% if post.pillar %} · {{ post.pillar }}{% endif %} · {{ post.author or '' }}{% endblock %}
+{% block heading %}{{ post.title }}{% endblock %}
+{% block actions %}
+  {% if post.status in ('pret','erreur') %}
+  <form method="post" action="{{ url_for('main.regenerer', post_id=post.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn ghost small">Régénérer les légendes</button></form>
+  <form method="post" action="{{ url_for('main.regenerer', post_id=post.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="complet" value="1"><button class="btn ghost small">Tout refaire</button></form>
+  {% endif %}
+  {% if current_user.role in ('admin','validateur') %}
+  <form method="post" action="{{ url_for('main.supprimer', post_id=post.id) }}" onsubmit="return confirm('Supprimer ce contenu et tous ses fichiers ?')"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn danger small">Supprimer</button></form>
+  {% endif %}
+{% endblock %}
+{% block content %}
+
+{% if post.status == 'traitement' %}{% include "_statut.html" %}{% endif %}
+{% if post.status == 'erreur' %}<div class="flash error"><b>Le traitement a échoué :</b> {{ post.error }}</div>{% endif %}
+{% if opts.alerte %}<div class="alerte"><span class="caps bronze">Point d'attention</span><br>{{ opts.alerte }}</div>{% endif %}
+{% if opts.sequence_ia %}<div class="alerte"><span class="caps bronze">Montage automatique</span><br>Séquence retenue : {{ '%d:%02d'|format(opts.sequence_ia.debut//60, opts.sequence_ia.debut%60) }} → {{ '%d:%02d'|format(opts.sequence_ia.fin//60, opts.sequence_ia.fin%60) }} — {{ opts.sequence_ia.raison }}</div>{% endif %}
+
+{% if post.kind == 'texte' and opts.slides %}
+<div class="card">
+  <details>
+    <summary>Modifier les diapositives du carrousel ({{ opts.slides|length }})</summary>
+    <form method="post" action="{{ url_for('main.diapos', post_id=post.id) }}">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="count" value="{{ opts.slides|length + 1 }}">
+      <p class="hint">Encadrez de ** les mots à passer en bronze. Types : couverture, contenu, chiffre, citation, cloture (hiérarchie ÉCRIVONS / ENSEMBLE / LE BARREAU DE DEMAIN). La dernière ligne vide permet d'ajouter une diapositive.</p>
+      {% for s in opts.slides + [{'type':'', 'fond':'anthracite'}] %}{% set i = loop.index0 %}
+      <div class="slide-edit">
+        <div class="grid g4">
+          <div><label>Type</label><select name="type_{{ i }}">{% if not s.type %}<option value="">— (nouvelle)</option>{% endif %}{% for t in ['couverture','contenu','chiffre','citation','cloture'] %}<option {{ 'selected' if s.type==t }}>{{ t }}</option>{% endfor %}</select></div>
+          <div><label>Surtitre</label><input type="text" name="surtitre_{{ i }}" value="{{ s.surtitre }}"></div>
+          <div><label>Chiffre</label><input type="text" name="chiffre_{{ i }}" value="{{ s.chiffre }}"></div>
+          <div><label>Fond</label><select name="fond_{{ i }}"><option {{ 'selected' if s.fond!='ivoire' }}>anthracite</option><option {{ 'selected' if s.fond=='ivoire' }}>ivoire</option></select></div>
+        </div>
+        <label>Titre</label><input type="text" name="titre_{{ i }}" value="{{ s.titre }}">
+        <label>Texte</label><textarea name="texte_{{ i }}" rows="2">{{ s.texte }}</textarea>
+        <div class="grid g2"><div><label>Auteur (citation)</label><input type="text" name="auteur_{{ i }}" value="{{ s.auteur }}"></div>
+        <div>{% if s.type %}<label class="choice" style="margin-top:34px"><input type="checkbox" name="del_{{ i }}" value="1"> Supprimer cette diapositive</label>{% else %}<input type="hidden" name="del_{{ i }}" value="0">{% endif %}</div></div>
+      </div>
+      {% endfor %}
+      <button class="btn">Mettre à jour le carrousel</button>
+    </form>
+  </details>
+</div>
+<script>
+  // une diapositive « nouvelle » sans type ni titre est ignorée
+  document.querySelectorAll('form[action$="/diapos"]').forEach(function (f) {
+    f.addEventListener('submit', function () {
+      var n = +f.count.value - 1, t = f['type_' + n];
+      if (t && !t.value) { var d = f['del_' + n]; d.value = '1'; }
+    });
+  });
+</script>
+{% endif %}
+
+{% if extras %}
+<div class="card"><h2>Fichiers communs</h2><div class="row">
+  {% for a in extras %}<a class="btn small ghost" href="{{ url_for('main.fichier', asset_id=a.id) }}?dl=1">{{ 'Sous-titres .srt' if a.fmt=='srt' else ('Vignette' if a.fmt=='apercu' else a.path.split('/')[-1]) }}</a>{% endfor %}
+  {% for a in sources %}<a class="btn small ghost" href="{{ url_for('main.fichier', asset_id=a.id) }}?dl=1">Source : {{ a.path.split('/')[-1][3:] }}</a>{% endfor %}
+</div></div>
+{% endif %}
+
+{% for v in variants %}
+{% set n = NETWORKS[v.network] %}
+{% set files = by_net.get(v.network, []) %}
+{% set visuals = files|selectattr('mime', 'in', ['image/jpeg','video/mp4'])|list %}
+{% set pdf = files|selectattr('mime', 'equalto', 'application/pdf')|first %}
+<div class="card" id="v{{ v.id }}">
+  <div class="vhead">
+    <div class="row"><span class="net">{{ n.label }}</span>
+      <span class="pill">{{ fmt_for(v.network, post.kind) }}</span>
+      <span class="pill {{ 'auto' if connected[v.network] }}">{{ 'Publication auto' if connected[v.network] else 'Publication assistée' }}</span></div>
+    <div class="row"><span class="pill {{ v.status }}">{{ STATUTS[v.status] }}</span>
+      {% if v.scheduled_at and v.status in ('programme','a_poster') %}<span class="caps bronze">{{ v.scheduled_at|local }}</span>{% endif %}
+      {% if v.external_url %}<a class="btn small ghost" href="{{ v.external_url }}" target="_blank" rel="noopener">Voir le post ↗</a>{% endif %}</div>
+  </div>
+  {% if v.error %}<div class="flash error">{{ v.error }}</div>{% endif %}
+
+  <div class="variant">
+    <div>
+      <div class="preview">
+        {% if visuals %}{% set first = visuals[0] %}
+          {% if first.mime == 'video/mp4' %}<video src="{{ url_for('main.fichier', asset_id=first.id) }}" controls preload="metadata" playsinline></video>
+          {% else %}<img src="{{ url_for('main.fichier', asset_id=first.id) }}" alt="{{ v.alt_text }}" id="main{{ v.id }}">{% endif %}
+          {% if visuals|length > 1 %}<div class="strip">{% for a in visuals %}<a href="{{ url_for('main.fichier', asset_id=a.id) }}" onclick="document.getElementById('main{{ v.id }}').src=this.href;return false;"><img src="{{ url_for('main.fichier', asset_id=a.id) }}" alt="" loading="lazy"></a>{% endfor %}</div>{% endif %}
+        {% else %}<p class="muted" style="color:var(--secondaire);padding:30px;text-align:center">Aperçu en préparation…</p>{% endif %}
+      </div>
+      <div class="row" style="margin-top:10px">
+        <a class="btn small" href="{{ url_for('main.variante_pack', vid=v.id) }}">Télécharger le pack</a>
+        {% for a in visuals %}<a class="btn small ghost" href="{{ url_for('main.fichier', asset_id=a.id) }}?dl=1">{{ loop.index }}</a>{% endfor %}
+        {% if pdf %}<a class="btn small ghost" href="{{ url_for('main.fichier', asset_id=pdf.id) }}?dl=1">PDF carrousel</a>{% endif %}
+      </div>
+    </div>
+
+    <div>
+      <form method="post" action="{{ url_for('main.variante_save', vid=v.id) }}">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        {% if v.network == 'youtube_shorts' %}
+          <label>Titre</label><input type="text" name="title" value="{{ v.title }}" data-max="100" data-counter="ct{{ v.id }}"><div class="counter" id="ct{{ v.id }}"></div>
+        {% else %}<input type="hidden" name="title" value="{{ v.title }}">{% endif %}
+        <label>{{ 'Texte à incruster / sticker' if v.network == 'instagram_story' else 'Légende' }}</label>
+        <div class="copybox">
+          <textarea name="caption" id="cap{{ v.id }}" rows="8" data-max="{{ n.caption_max }}" data-counter="cc{{ v.id }}">{{ v.caption }}</textarea>
+        </div>
+        <div class="counter" id="cc{{ v.id }}"></div>
+        {% if n.hashtags_max %}
+        <label>Hashtags <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">({{ n.hashtags_reco }} recommandés)</span></label>
+        <input type="text" name="hashtags" value="{{ v.hashtags }}">
+        {% else %}<input type="hidden" name="hashtags" value="{{ v.hashtags }}">{% endif %}
+        <details {{ 'open' if v.first_comment or v.collaborators or v.user_tags }}>
+          <summary>Premier commentaire, collaboration, identifications, accessibilité</summary>
+          <label>Premier commentaire</label><textarea name="first_comment" rows="2">{{ v.first_comment }}</textarea>
+          {% if n.collab %}<label>Collaborateurs Instagram (3 max.)</label><input type="text" name="collaborators" value="{{ v.collaborators }}" placeholder="@compte">
+          {% else %}<input type="hidden" name="collaborators" value="{{ v.collaborators }}">{% endif %}
+          <label>Comptes à identifier</label><input type="text" name="user_tags" value="{{ v.user_tags }}" placeholder="@compte">
+          <label>Texte alternatif</label><textarea name="alt_text" rows="2">{{ v.alt_text }}</textarea>
+        </details>
+        <div class="row" style="margin-top:12px">
+          <button class="btn ghost small">Enregistrer</button>
+          <textarea id="full{{ v.id }}" hidden>{{ previews[v.id] }}</textarea>
+          <button type="button" class="btn ghost small" data-copy="full{{ v.id }}">Copier légende + hashtags</button>
+          <a class="btn ghost small" href="{{ n.open_url }}" target="_blank" rel="noopener">Ouvrir {{ n.short }} ↗</a>
+        </div>
+      </form>
+
+      {% if v.status != 'publie' %}
+      <div class="actions">
+        {% if v.status in ('a_relire','echec') and can_validate %}
+        <form method="post" action="{{ url_for('main.variante_valider', vid=v.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <button class="btn bronze">✔ Valider cette déclinaison</button></form>
+        {% elif v.status == 'a_relire' and require_validation %}
+        <p class="muted">En attente de validation par un validateur.</p>
+        {% endif %}
+
+        <form method="post" action="{{ url_for('main.variante_programmer', vid=v.id) }}">
+          <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <label style="margin-top:0">Programmer au meilleur moment</label>
+          <div class="slots">{% for sl in slots[v.network] %}<button type="button" class="slot {{ sl.source }}" data-slot="{{ sl.local }}" data-target="when{{ v.id }}" title="{{ 'Créneau appris de vos performances' if sl.source=='historique' else 'Créneau conseillé' }}">{{ sl.label }}{% if sl.source=='historique' %} ★{% endif %}</button>{% endfor %}</div>
+          <div class="row"><input type="datetime-local" name="scheduled_at" id="when{{ v.id }}" style="max-width:240px" value="{{ v.scheduled_at|local('%Y-%m-%dT%H:%M') if v.scheduled_at else (slots[v.network][0].local if slots[v.network] else '') }}" required>
+            <button class="btn">Programmer</button></div>
+          <div class="hint">★ = créneau appris de vos performances passées. {% if not connected[v.network] %}Mode assisté : à l'heure dite, l'équipe est notifiée et la déclinaison passe « à poster maintenant ».{% endif %}</div>
+        </form>
+
+        <div class="row">
+          {% if v.status in ('programme','a_poster','echec') %}
+          <form method="post" action="{{ url_for('main.variante_deprogrammer', vid=v.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn ghost small">Déprogrammer</button></form>
+          {% endif %}
+          <form method="post" action="{{ url_for('main.variante_publier', vid=v.id) }}" onsubmit="return confirm('Publier maintenant sur {{ n.label }} ?')"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <button class="btn ghost small">{{ 'Publier maintenant' if connected[v.network] else 'Poster maintenant (assisté)' }}</button></form>
+        </div>
+
+        <form method="post" action="{{ url_for('main.variante_marquer', vid=v.id) }}" class="row">
+          <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <input type="url" name="url" placeholder="Lien du post une fois publié à la main" style="flex:1;min-width:200px" required>
+          <button class="btn ghost small">Marquer publié</button>
+        </form>
+      </div>
+      {% else %}
+      <p class="muted" style="margin-top:14px">Publié le {{ v.published_at|local }}.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% if post.transcript %}
+<div class="card"><details><summary>Transcription</summary><pre style="white-space:pre-wrap;font-family:inherit">{{ post.transcript }}</pre></details></div>
+{% endif %}
+{% endblock %}

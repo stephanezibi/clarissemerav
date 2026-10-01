@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Contenus{% endblock %}
+{% block heading %}Contenus{% endblock %}
+{% block actions %}<a class="btn ghost" href="{{ url_for('main.calendrier_export') }}">Exporter CSV</a><a class="btn bronze" href="{{ url_for('main.nouveau') }}">+ Nouveau</a>{% endblock %}
+{% block content %}
+<div class="card">
+  {% for p in rows %}
+  <div class="list-item">
+    {% if p.thumb %}<img class="thumb" src="{{ url_for('main.fichier', asset_id=p.thumb) }}" alt="" loading="lazy">{% else %}<div class="thumb"></div>{% endif %}
+    <div class="t">
+      <b>{{ p.title }}</b>
+      <span class="muted">{{ {'photo':'Photo','video':'Vidéo','texte':'Carrousel'}[p.kind] }}{% if p.pillar %} · {{ p.pillar }}{% endif %} · {{ p.author or '' }} · {{ p.created_at|local }}</span>
+      <div class="row" style="margin-top:6px">
+        {% if p.status in ('traitement','erreur') %}<span class="pill {{ p.status }}">{{ 'Traitement…' if p.status=='traitement' else 'Erreur' }}</span>{% endif %}
+        {% for item in (p.vstat or '').split(',') if item %}{% set n, st = item.split(':') %}
+          <span class="pill {{ st }}" title="{{ STATUTS[st] }}">{{ NETWORKS[n].short }} · {{ STATUTS[st] }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    <a class="btn small" href="{{ url_for('main.contenu', post_id=p.id) }}">Ouvrir</a>
+  </div>
+  {% else %}
+  <p class="muted">Aucun contenu. <a href="{{ url_for('main.nouveau') }}">Créer le premier</a>.</p>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Performances{% endblock %}
+{% block heading %}Performances{% endblock %}
+{% block actions %}
+  <form method="post" action="{{ url_for('main.performances_refresh') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn ghost small">Actualiser depuis les API</button></form>
+  <a class="btn bronze" href="{{ url_for('main.performances_export') }}">Exporter CSV pour l'outil de campagne</a>
+{% endblock %}
+{% block content %}
+<div class="grid g2">
+  <div class="card">
+    <h2>Importer des statistiques (CSV)</h2>
+    <form method="post" action="{{ url_for('main.performances_import') }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <input type="file" name="csv" accept=".csv,text/csv" required>
+      <label>Réseau par défaut (si le fichier ne le précise pas)</label>
+      <select name="network"><option value="">Détection automatique (par le lien)</option>{% for k, n in NETWORKS.items() %}<option value="{{ k }}">{{ n.label }}</option>{% endfor %}</select>
+      <p class="hint">Exports Meta Business Suite, LinkedIn, X, TikTok… en français ou en anglais, « ; » ou « , ». Les lignes sont rattachées aux publications de l'appli par leur lien.</p>
+      <button class="btn">Importer</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Par réseau</h2>
+    <table><tr><th>Réseau</th><th class="n">Posts</th><th class="n">Impressions</th><th class="n">Interactions</th><th class="n">Engag. moy.</th></tr>
+      {% for net, a in by_net.items() %}<tr><td>{{ label(net) }}</td><td class="n">{{ a.n }}</td><td class="n">{{ '{:,}'.format(a.impressions).replace(',', ' ') }}</td><td class="n">{{ '{:,}'.format(a.inter).replace(',', ' ') }}</td><td class="n">{{ '%.1f'|format(a.eng / a.n) }} %</td></tr>
+      {% else %}<tr><td colspan="5" class="muted">Pas encore de données.</td></tr>{% endfor %}
+    </table>
+    {% if by_pillar %}
+    <h2 style="margin-top:20px">Par thème de campagne</h2>
+    <table><tr><th>Thème</th><th class="n">Posts</th><th class="n">Engag. moy.</th></tr>
+      {% for k, a in by_pillar.items() %}<tr><td>{{ k }}</td><td class="n">{{ a.n }}</td><td class="n">{{ '%.1f'|format(a.eng / a.n) }} %</td></tr>{% endfor %}
+    </table>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <h2>Quand l'audience réagit le plus (engagement moyen, %)</h2>
+  <div class="table-wrap"><table class="heat">
+    <tr><th></th>{% for b in range(8) %}<th style="text-align:center">{{ b*3 }}h–{{ b*3+3 }}h</th>{% endfor %}</tr>
+    {% for d in range(7) %}<tr><th>{{ jours[d] }}</th>
+      {% for b in range(8) %}{% set val = hm.cells.get((d, b)) %}
+      <td style="background: {% if val is not none %}rgba(191,156,117,{{ '%.2f'|format(0.15 + 0.85 * val / hm.max) }}){% else %}#f6f4f0{% endif %}" title="{{ hm.counts.get((d,b), 0) }} post(s)">{{ val if val is not none else '' }}</td>
+      {% endfor %}</tr>{% endfor %}
+  </table></div>
+  <p class="hint">Ces données affinent automatiquement les créneaux proposés lors de la programmation (★).</p>
+</div>
+
+<div class="card">
+  <h2>Détail par publication</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Date</th><th>Réseau</th><th>Titre</th><th>Thème</th><th class="n">Impr.</th><th class="n">Couv.</th><th class="n">J'aime</th><th class="n">Comm.</th><th class="n">Partages</th><th class="n">Enreg.</th><th class="n">Vues</th><th class="n">Engag.</th><th>Source</th></tr>
+    {% for r in rows %}
+    <tr><td>{{ r.published|local('%d/%m/%y %H:%M') }}</td><td>{{ NETWORKS[r.network].short if r.network in NETWORKS else r.network }}</td>
+      <td>{% if r.url %}<a href="{{ r.url }}" target="_blank" rel="noopener">{{ (r.titre or 'post')[:60] }}</a>{% else %}{{ r.titre[:60] }}{% endif %}</td>
+      <td>{{ r.pillar or '' }}</td><td class="n">{{ r.impressions }}</td><td class="n">{{ r.reach }}</td><td class="n">{{ r.likes }}</td><td class="n">{{ r.comments }}</td><td class="n">{{ r.shares }}</td><td class="n">{{ r.saves }}</td><td class="n">{{ r.video_views }}</td><td class="n"><b>{{ r.engagement }} %</b></td><td class="muted">{{ r.source }}</td></tr>
+    {% else %}<tr><td colspan="13" class="muted">Importez un CSV ou connectez les API pour voir les performances.</td></tr>{% endfor %}
+  </table></div>
+</div>
+{% endblock %}

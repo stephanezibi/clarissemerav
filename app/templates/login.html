@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connexion · Studio Réseaux</title><link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}"></head>
+<body class="auth">
+  <form class="auth-box" method="post">
+    <div class="brand"><div class="s1">SURIN / GRIGUER</div><div class="rule"></div><div class="s2">PARIS · BÂTONNAT 2028</div></div>
+    <div class="caps bronze">Studio réseaux sociaux</div>
+    {% with msgs = get_flashed_messages(with_categories=true) %}{% for cat, m in msgs %}<div class="flash {{ cat }}" style="margin-top:12px">{{ m }}</div>{% endfor %}{% endwith %}
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <label>E-mail</label><input type="email" name="email" required autofocus>
+    <label>Mot de passe</label><input type="password" name="password" required>
+    <p><button class="btn" style="width:100%;justify-content:center">Se connecter</button></p>
+  </form>
+</body></html>

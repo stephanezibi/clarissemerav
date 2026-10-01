@@ -1,0 +1,16 @@
+# Studio Réseaux — Surin / Griguer · Bâtonnat 2028
+flask>=3.0
+waitress>=3.0
+anthropic>=1.11
+pillow>=10.4
+apscheduler>=3.10,<4
+requests>=2.31
+python-dotenv>=1.0
+tzdata>=2024.1
+pillow-heif>=0.18          # photos iPhone (.heic)
+
+# Sous-titres automatiques (transcription locale, ~500 Mo avec le modèle « small »)
+faster-whisper>=1.0
+
+# Tests
+pytest>=8.0

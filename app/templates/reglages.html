@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Réglages{% endblock %}
+{% block heading %}Réglages{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>État du serveur</h2>
+  <div class="grid g2">
+    <table>{% for k, ok in checks.items() %}<tr><td>{{ k }}</td><td>{{ '✔' if ok else '— à configurer' }}</td></tr>{% endfor %}</table>
+    <table>{% for k, n in NETWORKS.items() %}<tr><td>{{ n.label }}</td><td>{% if connected[k] %}<span class="pill auto">Publication auto</span>{% else %}<span class="pill">Assistée</span>{% endif %}</td></tr>{% endfor %}</table>
+  </div>
+  <p class="hint">Les clés et jetons se configurent dans le fichier <code>.env</code> du serveur (voir README) ; ils ne sont jamais affichés ici.</p>
+</div>
+
+<div class="card" id="charte">
+  <h2>Charte graphique</h2>
+  <div class="grid g2">
+    <form method="post" enctype="multipart/form-data">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="section" value="charte">
+      <div class="grid g2">
+        {% for k, lbl in [('anthracite','Fond principal anthracite'),('ivoire','Ivoire'),('bronze','Accent bronze'),('secondaire','Texte secondaire')] %}
+        <div><label>{{ lbl }}</label><div class="row"><input type="color" value="{{ brand[k] }}" oninput="this.nextElementSibling.value=this.value"><input type="text" name="{{ k }}" value="{{ brand[k] }}" style="flex:1"></div></div>
+        {% endfor %}
+      </div>
+      <label>Signature — ligne 1</label><input type="text" name="signature_1" value="{{ brand.signature_1 }}">
+      <label>Signature — ligne 2</label><input type="text" name="signature_2" value="{{ brand.signature_2 }}">
+      <label>Accroche de référence</label><input type="text" name="accroche" value="{{ brand.accroche }}">
+      <label>Site</label><input type="text" name="site" value="{{ brand.site }}">
+      <label>Logo (PNG transparent, optionnel)</label><input type="file" name="logo" accept="image/png">
+      {% if brand.logo_path %}<label class="choice"><input type="checkbox" name="logo_remove" value="1"> Retirer le logo actuel</label>{% endif %}
+      <label class="choice" style="margin-top:12px"><input type="checkbox" name="watermark" value="1" {{ 'checked' if brand.watermark }}> Signature incrustée par défaut</label>
+      <p class="hint">Typographie : Montserrat Regular 400 / Bold 700 (intégrée). Mots importants, dates et chiffres en bronze ; pas de dégradés ni d'ombres.</p>
+      <button class="btn">Enregistrer la charte</button>
+    </form>
+    <div>
+      <label style="margin-top:0">Aperçus</label>
+      <div class="grid g3">
+        <img src="{{ url_for('main.apercu_charte', type='couverture') }}" alt="Couverture" style="width:100%">
+        <img src="{{ url_for('main.apercu_charte', type='chiffre') }}" alt="Chiffre" style="width:100%">
+        <img src="{{ url_for('main.apercu_charte', type='cloture') }}" alt="Clôture" style="width:100%">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="campagne">
+  <h2>Contexte de campagne (pour la rédaction IA)</h2>
+  <form method="post">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="section" value="campagne">
+    <div class="grid g2">
+      <div><label>Nom de la campagne</label><input type="text" name="nom" value="{{ campaign.nom }}"></div>
+      <div><label>Site</label><input type="text" name="site" value="{{ campaign.site }}"></div>
+    </div>
+    <label>Candidates</label><textarea name="candidats" rows="2">{{ campaign.candidats }}</textarea>
+    <label>Ton et style</label><textarea name="ton" rows="3">{{ campaign.ton }}</textarea>
+    <label>Messages clés / programme</label><textarea name="messages_cles" rows="5">{{ campaign.messages_cles }}</textarea>
+    <div class="grid g2">
+      <div><label>Thèmes de campagne (séparés par des virgules)</label><input type="text" name="piliers" value="{{ campaign.piliers }}"></div>
+      <div><label>Hashtags de campagne</label><input type="text" name="hashtags_defaut" value="{{ campaign.hashtags_defaut }}"></div>
+    </div>
+    <label>Glossaire (noms propres, termes à orthographier exactement — sert aussi aux sous-titres)</label><textarea name="glossaire" rows="2">{{ campaign.glossaire }}</textarea>
+    <label>Interdits / règles</label><textarea name="interdits" rows="3">{{ campaign.interdits }}</textarea>
+    <label class="choice" style="margin-top:12px"><input type="checkbox" name="validation_obligatoire" value="1" {{ 'checked' if validation }}> Validation obligatoire avant publication (par un validateur ou un administrateur)</label>
+    <p><button class="btn">Enregistrer</button></p>
+  </form>
+</div>
+
+<div class="card" id="equipe">
+  <h2>Équipe</h2>
+  <table><tr><th>Nom</th><th>E-mail</th><th>Rôle</th><th></th></tr>
+    {% for u in users %}<tr><td>{{ u.name }}</td><td>{{ u.email }}</td><td>{{ roles[u.role] }}</td>
+      <td>{% if u.id != current_user.id %}<form method="post" onsubmit="return confirm('Retirer {{ u.name }} ?')"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="section" value="supprimer_membre"><input type="hidden" name="uid" value="{{ u.id }}"><button class="btn danger small">Retirer</button></form>{% endif %}</td></tr>{% endfor %}
+  </table>
+  <form method="post" class="grid g4" style="align-items:end;margin-top:10px">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="section" value="equipe">
+    <div><label>Nom</label><input type="text" name="name" required></div>
+    <div><label>E-mail</label><input type="email" name="email" required></div>
+    <div><label>Mot de passe provisoire</label><input type="text" name="password" minlength="8" required></div>
+    <div><label>Rôle</label><select name="role">{% for k, r in roles.items() %}<option value="{{ k }}" {{ 'selected' if k=='editeur' }}>{{ r }}</option>{% endfor %}</select></div>
+    <div><button class="btn">Ajouter</button></div>
+  </form>
+</div>
+{% endblock %}
