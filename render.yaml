@@ -1,0 +1,41 @@
+# Déploiement en un clic sur Render (https://render.com) — « Blueprint »
+# Le disque persistant /data conserve la base et les fichiers entre deux déploiements.
+services:
+  - type: web
+    name: studio-surin-griguer
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    branch: claude/social-media-content-webapp-n2qofm
+    healthCheckPath: /connexion
+    disk:
+      name: donnees
+      mountPath: /data
+      sizeGB: 10
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TIMEZONE
+        value: Europe/Paris
+      - key: CLAUDE_MODEL
+        value: claude-opus-5-5
+      - key: WHISPER_MODEL
+        value: small
+      - key: NOTIFY_WEBHOOK_URL
+        sync: false
+      - key: META_ACCESS_TOKEN
+        sync: false
+      - key: INSTAGRAM_USER_ID
+        sync: false
+      - key: FACEBOOK_PAGE_ID
+        sync: false
+      - key: FACEBOOK_PAGE_TOKEN
+        sync: false
+      - key: LINKEDIN_ACCESS_TOKEN
+        sync: false
+      - key: LINKEDIN_AUTHOR_URN
+        sync: false
+      - key: X_USER_ACCESS_TOKEN
+        sync: false

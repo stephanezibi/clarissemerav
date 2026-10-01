@@ -1,0 +1,15 @@
+name: Tests
+on:
+  push:
+  pull_request:
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: pip install flask waitress "anthropic>=1.11" pillow pillow-heif "apscheduler<4" requests python-dotenv tzdata pytest
+      - run: pytest -q

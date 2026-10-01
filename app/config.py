@@ -33,7 +33,8 @@ class Config:
 
     # URL publique de l'appli (obligatoire pour la publication Instagram /
     # Facebook : Meta va chercher les médias à cette adresse).
-    PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "").rstrip("/")
+    # (sur Render, l'adresse du service est fournie automatiquement)
+    PUBLIC_BASE_URL = (os.environ.get("PUBLIC_BASE_URL") or os.environ.get("RENDER_EXTERNAL_URL", "")).rstrip("/")
     TIMEZONE = os.environ.get("TIMEZONE", "Europe/Paris")
 
     # Claude

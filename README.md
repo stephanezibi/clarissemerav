@@ -77,7 +77,23 @@ espacées. Tout cela est réglable dans **Réglages → Charte**, avec un aperç
 - **Éditeur** : créer, préparer et programmer. La publication attend une
   validation si celle-ci est obligatoire.
 
-## Installation sur un serveur (recommandé)
+## Mise en ligne en un clic (Render)
+
+[![Déployer sur Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/stephanezibi/clarissemerave)
+
+1. Cliquer sur le bouton et se connecter à Render avec le compte GitHub qui a accès au dépôt.
+2. Renseigner `ANTHROPIC_API_KEY`. Les jetons des réseaux peuvent rester vides
+   au début : la publication passe alors en mode assisté.
+3. Valider. Render construit l'appli (environ 10 minutes), lui donne une adresse
+   en `https://…onrender.com` et la remet en ligne à chaque nouvelle version du code.
+   Coût indicatif : offre « Starter » avec un disque de 10 Go, environ 10 $ par mois.
+4. Ouvrir l'adresse : le premier écran crée le compte administrateur.
+
+L'adresse publique (`PUBLIC_BASE_URL`) est détectée automatiquement sur Render.
+Un nom de domaine personnalisé peut être ajouté dans Render, par exemple
+`studio.batonnatsuringriguer.com`.
+
+## Installation sur un autre serveur (Docker)
 
 Un petit serveur suffit (2 processeurs et 4 Go de mémoire), avec Docker installé
 et une adresse HTTPS : OVH, Scaleway, Render, Railway, Fly.io…
