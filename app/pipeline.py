@@ -13,6 +13,7 @@ Le traitement tourne en arrière-plan ; la page du contenu suit sa progression.
 from __future__ import annotations
 
 import json
+import os
 import secrets
 import shutil
 import tempfile
@@ -25,7 +26,8 @@ from app.brand import DEFAULT_BRAND, DEFAULT_CAMPAIGN
 from app.db import Store, now_iso
 from app.networks import NETWORKS, target_format
 
-_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="traitement")
+_executor = ThreadPoolExecutor(max_workers=int(os.environ.get("PROCESS_WORKERS", "2")),
+                               thread_name_prefix="traitement")
 
 
 def get_brand(store: Store) -> dict:

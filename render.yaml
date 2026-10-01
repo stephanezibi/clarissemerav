@@ -21,8 +21,12 @@ services:
         value: Europe/Paris
       - key: CLAUDE_MODEL
         value: claude-opus-5-5
+      # Offre Starter = 512 Mo : modèle de transcription léger et une tâche à la fois.
+      # En offre Standard (2 Go), passer à « small » et PROCESS_WORKERS=2.
       - key: WHISPER_MODEL
-        value: small
+        value: base
+      - key: PROCESS_WORKERS
+        value: "1"
       - key: NOTIFY_WEBHOOK_URL
         sync: false
       - key: META_ACCESS_TOKEN
