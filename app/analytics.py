@@ -234,14 +234,14 @@ def export_csv(store: Store) -> bytes:
 
 def export_calendar_csv(store: Store) -> bytes:
     rows = store.query("""
-        SELECT v.*, p.title, p.pillar, p.kind FROM variants v JOIN posts p ON p.id=v.post_id
+        SELECT v.*, p.title AS post_title, p.pillar, p.kind FROM variants v JOIN posts p ON p.id=v.post_id
         ORDER BY COALESCE(v.published_at, v.scheduled_at) DESC""")
     buf = io.StringIO()
     w = csv.writer(buf, delimiter=";")
     w.writerow(["id", "titre", "theme", "type", "reseau", "statut", "programme_le", "publie_le", "lien",
                 "legende", "hashtags", "collaborateurs"])
     for r in rows:
-        w.writerow([r["id"], r["title"], r["pillar"], r["kind"], r["network"], r["status"],
+        w.writerow([r["id"], r["post_title"], r["pillar"], r["kind"], r["network"], r["status"],
                     r["scheduled_at"] or "", r["published_at"] or "", r["external_url"],
                     r["caption"], r["hashtags"], r["collaborators"]])
     return ("﻿" + buf.getvalue()).encode("utf-8")

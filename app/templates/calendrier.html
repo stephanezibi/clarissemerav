@@ -16,7 +16,7 @@
     {% for v in d.posts %}
     <a class="ev {{ v.status }}" href="{{ url_for('main.contenu', post_id=v.post_id) }}#v{{ v.id }}">
       <b>{{ (v.published_at or v.scheduled_at)|local('%H:%M') }}</b> · {{ NETWORKS[v.network].short }}
-      <small>{{ v.title }}</small><small>{{ STATUTS[v.status] }}</small>
+      <small>{{ v.post_title }}</small><small>{{ STATUTS[v.status] }}</small>
     </a>
     {% endfor %}
   </div>

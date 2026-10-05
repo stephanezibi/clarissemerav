@@ -52,9 +52,11 @@ def create_app(overrides: dict | None = None) -> Flask:
             dt = datetime.fromisoformat(str(value))
         except ValueError:
             return value
-        if dt.tzinfo is None:
-            return dt.strftime(fmt)
-        return dt.astimezone(tz).strftime(fmt)
+        if dt.tzinfo is not None:
+            dt = dt.astimezone(tz)
+        # jour de la semaine en français (strftime suit la langue du serveur)
+        fmt = fmt.replace("%a", ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."][dt.weekday()])
+        return dt.strftime(fmt)
 
     @app.context_processor
     def inject():

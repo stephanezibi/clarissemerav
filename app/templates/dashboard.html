@@ -16,7 +16,7 @@
   {% for v in a_poster %}
   <div class="list-item">
     <span class="pill {{ v.status }}">{{ STATUTS[v.status] }}</span>
-    <div class="t"><b>{{ v.title }}</b><span class="muted">{{ label(v.network) }}{% if v.scheduled_at %} · prévu {{ v.scheduled_at|local }}{% endif %}{% if v.error %} · {{ v.error[:120] }}{% endif %}</span></div>
+    <div class="t"><b>{{ v.post_title }}</b><span class="muted">{{ label(v.network) }}{% if v.scheduled_at %} · prévu {{ v.scheduled_at|local }}{% endif %}{% if v.error %} · {{ v.error[:120] }}{% endif %}</span></div>
     <a class="btn small" href="{{ url_for('main.contenu', post_id=v.post_id) }}#v{{ v.id }}">Ouvrir</a>
   </div>
   {% endfor %}
@@ -35,7 +35,7 @@
     <h2>À relire et valider</h2>
     {% for v in a_valider %}
     <div class="list-item">
-      <div class="t"><b>{{ v.title }}</b><span class="muted">{{ label(v.network) }}</span></div>
+      <div class="t"><b>{{ v.post_title }}</b><span class="muted">{{ label(v.network) }}</span></div>
       <a class="btn small ghost" href="{{ url_for('main.contenu', post_id=v.post_id) }}#v{{ v.id }}">Relire</a>
     </div>
     {% else %}<p class="muted">Rien en attente.</p>{% endfor %}
@@ -45,7 +45,7 @@
     {% for v in prochains %}
     <div class="list-item">
       <span class="caps bronze" style="min-width:110px">{{ v.scheduled_at|local('%a %d/%m %H:%M') }}</span>
-      <div class="t"><b>{{ v.title }}</b><span class="muted">{{ label(v.network) }}</span></div>
+      <div class="t"><b>{{ v.post_title }}</b><span class="muted">{{ label(v.network) }}</span></div>
       <a class="btn small ghost" href="{{ url_for('main.contenu', post_id=v.post_id) }}#v{{ v.id }}">Voir</a>
     </div>
     {% else %}<p class="muted">Aucune publication programmée.</p>{% endfor %}
@@ -54,7 +54,7 @@
     <h2>Derniers posts publiés</h2>
     {% for v in recents %}
     <div class="list-item">
-      <div class="t"><b>{{ v.title }}</b><span class="muted">{{ label(v.network) }} · {{ v.published_at|local }}</span></div>
+      <div class="t"><b>{{ v.post_title }}</b><span class="muted">{{ label(v.network) }} · {{ v.published_at|local }}</span></div>
       {% if v.external_url %}<a class="btn small ghost" href="{{ v.external_url }}" target="_blank" rel="noopener">Voir le post</a>{% endif %}
     </div>
     {% else %}<p class="muted">Aucun post publié pour l'instant.</p>{% endfor %}

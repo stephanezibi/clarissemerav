@@ -69,6 +69,8 @@ def test_photo_pipeline_end_to_end(logged, app, monkeypatch):
     assert v["collaborators"] == "@clarisse @merav" and v["hashtags"] == "#Batonnat2028 #Paris"
     assert store.query("SELECT collaborators FROM variants WHERE network='linkedin'", one=True)["collaborators"] == ""
     assert logged.get(f"/contenus/{post_id}").status_code == 200
+    # le titre du contenu (et non le titre YouTube vide de la déclinaison) s'affiche partout
+    assert "Rencontre" in logged.get("/").get_data(as_text=True)
 
     # validation → programmation → échéance → mode assisté (pas de connecteur)
     logged.post(f"/variantes/{v['id']}/valider")
@@ -79,6 +81,7 @@ def test_photo_pipeline_end_to_end(logged, app, monkeypatch):
     assert store.query("SELECT status FROM variants WHERE id=?", (v["id"],), one=True)["status"] == "a_poster"
     pack = logged.get(f"/variantes/{v['id']}/pack.zip")
     assert pack.status_code == 200 and pack.mimetype == "application/zip"
+    assert "Rencontre" in analytics.export_calendar_csv(store).decode("utf-8-sig")
     logged.post(f"/variantes/{v['id']}/marquer-publie", data={"url": "https://www.instagram.com/p/ABC123xyz/"})
     assert store.query("SELECT status FROM variants WHERE id=?", (v["id"],), one=True)["status"] == "publie"
 

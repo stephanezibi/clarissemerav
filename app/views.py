@@ -87,14 +87,14 @@ def _require_validation() -> bool:
 @login_required
 def dashboard():
     s = store()
-    a_poster = s.query("""SELECT v.*, p.title FROM variants v JOIN posts p ON p.id=v.post_id
+    a_poster = s.query("""SELECT v.*, p.title AS post_title FROM variants v JOIN posts p ON p.id=v.post_id
                           WHERE v.status IN ('a_poster','echec') ORDER BY v.scheduled_at""")
-    a_valider = s.query("""SELECT v.*, p.title FROM variants v JOIN posts p ON p.id=v.post_id
+    a_valider = s.query("""SELECT v.*, p.title AS post_title FROM variants v JOIN posts p ON p.id=v.post_id
                            WHERE v.status='a_relire' AND p.status='pret' ORDER BY p.created_at DESC LIMIT 20""")
-    prochains = s.query("""SELECT v.*, p.title FROM variants v JOIN posts p ON p.id=v.post_id
+    prochains = s.query("""SELECT v.*, p.title AS post_title FROM variants v JOIN posts p ON p.id=v.post_id
                            WHERE v.status='programme' ORDER BY v.scheduled_at LIMIT 12""")
     en_cours = s.query("SELECT * FROM posts WHERE status IN ('traitement','erreur') ORDER BY updated_at DESC")
-    recents = s.query("""SELECT v.*, p.title FROM variants v JOIN posts p ON p.id=v.post_id
+    recents = s.query("""SELECT v.*, p.title AS post_title FROM variants v JOIN posts p ON p.id=v.post_id
                          WHERE v.status='publie' ORDER BY v.published_at DESC LIMIT 8""")
     activite = s.query("""SELECT a.*, u.name FROM activity a LEFT JOIN users u ON u.id=a.user_id
                           ORDER BY a.id DESC LIMIT 12""")
@@ -512,7 +512,7 @@ def calendrier():
     start = datetime(monday.year, monday.month, monday.day, tzinfo=tz)
     end = start + timedelta(days=7)
     rows = store().query("""
-        SELECT v.*, p.title, p.kind FROM variants v JOIN posts p ON p.id=v.post_id
+        SELECT v.*, p.title AS post_title, p.kind FROM variants v JOIN posts p ON p.id=v.post_id
         WHERE COALESCE(v.published_at, v.scheduled_at) >= ? AND COALESCE(v.published_at, v.scheduled_at) < ?
         ORDER BY COALESCE(v.published_at, v.scheduled_at)""",
                          (start.astimezone(timezone.utc).isoformat(), end.astimezone(timezone.utc).isoformat()))
